@@ -1,7 +1,6 @@
 package nl.tue.s2id90.dl.experiment;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -13,6 +12,15 @@ import nl.tue.s2id90.dl.javafx.FXGUI;
 import nl.tue.s2id90.dl.input.InputReader;
 import nl.tue.s2id90.dl.javafx.Activations;
 import nl.tue.s2id90.dl.javafx.GraphPanel;
+
+// START OWN IMPORTS
+import java.io.PrintWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+// END OWN IMPORTS
 
 /**
  * 
@@ -26,6 +34,8 @@ public class Experiment {
     private GraphPanel validationGraph;
     private Activations activations;
     private BatchResult lastValidationResult;
+    
+    PrintWriter writer = null; // OWN ADDITION
  
     public Experiment() {
         this(false);    // don't startup GUI
@@ -79,6 +89,16 @@ public class Experiment {
      */
     public void trainModel(Model model, InputReader reader, Optimizer sgd, int epochs, int activations) {
         // loop over all training batches for #epochs times
+        // START OWN ADDITIONS
+        String dateTime= DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(ZonedDateTime.now());
+        String fileName = String.format("results/results-%s.txt", dateTime);
+        try {
+            this.writer = new PrintWriter(fileName, "UTF-8");
+        } catch (UnsupportedEncodingException | FileNotFoundException ex) {
+            Logger.getLogger(Experiment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.writer.println(model.toString() + "\n" + sgd.toString() + "\n");
+        // END OWN ADDITIONS
         for( int epoch = 1 ; epoch <= epochs ; epoch++ ){
             
             // iterator randomizes data and loops over all training data
@@ -98,7 +118,7 @@ public class Experiment {
             
             onEpochFinished(model, reader, sgd, epochs, activations, epoch);
         }
-        
+        this.writer.close(); // OWN ADDITION
         System.out.format( "Training of model finished after %d epochs.\n.", epochs );
     }
     
@@ -138,13 +158,15 @@ public class Experiment {
      *                     if less or equal to zero, this is ignored.
      * @param epoch       index of the last finished epoch.
      */
-    public void onEpochFinished(Model model, InputReader reader, Optimizer sgd, int epochs, int activations, int epoch) {
+    public void onEpochFinished(Model model, InputReader reader, Optimizer sgd, int epochs, int activations, int epoch){
         // validate model after each epoch
         System.out.println("\nValidating ...");
         model.setInTrainingMode(false);
         lastValidationResult = sgd.validate(reader.getValidationData());
         System.out.format("Validation after epoch %3d: %s \n", epoch, lastValidationResult);
-
+        // START OWN ADDITIONS
+        this.writer.format("epoch:%3d; %s\n", epoch, lastValidationResult.toString().substring(1, lastValidationResult.toString().length() - 1));
+        // END OWN ADDITIONS
         // add to gui
         addValidationResult(lastValidationResult);
     }
