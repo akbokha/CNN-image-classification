@@ -31,10 +31,10 @@ hs_err_pid*
 *.sar
 *.class
 
-# Maven 
+# Maven
 target/
 
-# IntelliJ project files 
+# IntelliJ project files
 *.iml
 *.iws
 *.ipr
@@ -58,3 +58,4 @@ nb-configuration.xml
 release.properties
 pom.xml.releaseBackup
 pom.xml.tag
+/results/

@@ -1,3 +1,7 @@
+/*
+ * Regression: Three valued function
+ * Experimentation with the topology of the neural network and its hyper-parameters to evaluate the effects on the model performance
+ */
 package experiments;
 import nl.tue.s2id90.dl.experiment.Experiment;
 import java.io.IOException;
@@ -16,7 +20,6 @@ import nl.tue.s2id90.dl.input.GenerateFunctionData;
 import nl.tue.s2id90.dl.input.InputReader;
 
 /**
- *
  * @author Abdel K. Bokharouss
  * @author Adriaan Knapen
  */
@@ -27,6 +30,10 @@ public class FunctionExperiment extends Experiment {
     float learningRate = 0.01f; // parameter for the gradient descent optimization method
     int numberOfNeuronsLayer = 8; // number of neurons of the layer
     int numberOfLayers = 10; // number of layers
+    
+    public FunctionExperiment() {
+        super(true);
+    }
     
     public void go() throws IOException {
         // read input and print information on the data

@@ -27,7 +27,7 @@ public class FXGUI extends FXBase {
         gui = this;
         this.stage = primaryStage;
 
-        Scene scene = new Scene(tabPane, 300, 250);
+        Scene scene = new Scene(tabPane, 600, 500);
         //tabPane.getTabs().add(new Tab("About",new Text("hello world")));
         primaryStage.setScene(scene);
         primaryStage.setOnCloseRequest(e -> System.exit(0));
