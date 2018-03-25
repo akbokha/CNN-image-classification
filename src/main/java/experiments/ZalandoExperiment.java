@@ -56,6 +56,8 @@ public class ZalandoExperiment extends Experiment {
         System.out.println("Reader info:\n" + reader.toString());
         reader.getValidationData(1).forEach(System.out::println);
         
+//        System.out.println("\nin : " + reader.getInputShape() + " out: " + reader.getOutputShape() + "\n");
+        
         // show a set of images to get more acquinted with the dataset
         ShowCase showCase = new ShowCase(i -> labels[i]);
         FXGUI.getSingleton().addTab("show case", showCase.getNode());
