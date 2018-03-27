@@ -24,7 +24,7 @@ public class ConvolutionExperiment extends Experiment {
     protected float learningRate = 0.2f;
     protected int batchSize = 64;
     protected int epochs = 5;
-    protected int kernelSize = 5;
+    protected int kernelSize = 3;
     protected int noFilters = 1;
     
     static int FLATTEN_LINEAR = 1; // can be used to flatten the shape of an input image into a linear shape
