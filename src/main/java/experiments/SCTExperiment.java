@@ -30,7 +30,7 @@ public class SCTExperiment extends SgdExperimentTemplate {
     
     @Override
     protected String[] getLabels() {
-        return new String[] {"S", "C", "T"};
+        return new String[] {"Square", "Circle", "Triangle"};
     }
     
     @Override
