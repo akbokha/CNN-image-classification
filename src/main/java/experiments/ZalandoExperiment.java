@@ -68,6 +68,7 @@ public class ZalandoExperiment extends Experiment {
         Optimizer sgd = SGD.builder()
                 .model(model)
                 .learningRate(learningRate)
+                .updateFunction(GradientDescentMomentum::new)
                 .validator(new Classification())
                 .build();
         trainModel(model, reader, sgd, epochs, 0);
