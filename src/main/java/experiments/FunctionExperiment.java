@@ -25,8 +25,8 @@ import nl.tue.s2id90.dl.input.InputReader;
  */
 public class FunctionExperiment extends Experiment {
     // (hyper) parameters
-    int batchSize = 16; // size of the batches in which the data is processed
-    int epochs = 10; // number of epochs that a training takes
+    int batchSize = 64; // size of the batches in which the data is processed
+    int epochs = 8; // number of epochs that a training takes
     float learningRate = 0.01f; // parameter for the gradient descent optimization method
     int numberOfNeuronsLayer = 8; // number of neurons of the layer
     int numberOfLayers = 10; // number of layers
@@ -63,9 +63,9 @@ public class FunctionExperiment extends Experiment {
         
         Model model = new Model(new InputLayer("In", new TensorShape(inputs), true));
    
-        // FIRST EXAMINATION
-//        model.addLayer(new SimpleOutput("Out", new TensorShape(inputs), outputs, new MSE(), true));
-        
+        // FIRST EXAMINATION: Single-Layer Neural Network
+        model.addLayer(new SimpleOutput("Out", new TensorShape(inputs), outputs, new MSE(), true));
+
         // SECOND EXAMINATION: One additional layer
 //        model.addLayer(new FullyConnected("fc1", new TensorShape(inputs), inputs, new RELU()));
 //        model.addLayer(new SimpleOutput("Out", new TensorShape(inputs), outputs, new MSE(), true));
@@ -74,12 +74,13 @@ public class FunctionExperiment extends Experiment {
 //        model.addLayer(new FullyConnected("fc1", new TensorShape(inputs), numberOfNeuronsLayer, new RELU()));
 //        model.addLayer(new SimpleOutput("Out", new TensorShape(numberOfNeuronsLayer), outputs, new MSE(), true));
 
-        // FOURTH EXAMINATION: Multiple layers
-        model.addLayer(new FullyConnected("fc1", new TensorShape(inputs), numberOfNeuronsLayer, new RELU()));
-        for (int i = 0; i < numberOfLayers - 1; i++) {
-            model.addLayer(new FullyConnected(String.format("fc%s", Integer.toString(i + 2)), new TensorShape(numberOfNeuronsLayer), numberOfNeuronsLayer, new RELU()));
-        }
-        model.addLayer(new SimpleOutput("Out", new TensorShape(numberOfNeuronsLayer), outputs, new MSE(), true));
+        // FOURTH EXAMINATION: Multiple layers with {@code: numberOfNeurons} neurons
+//        model.addLayer(new FullyConnected("fc1", new TensorShape(inputs), numberOfNeuronsLayer, new RELU()));
+//        for (int i = 0; i < numberOfLayers - 1; i++) {
+//            model.addLayer(new FullyConnected(String.format("fc%s", Integer.toString(i + 2)), new TensorShape(numberOfNeuronsLayer), numberOfNeuronsLayer, new RELU()));
+//        }
+//        model.addLayer(new SimpleOutput("Out", new TensorShape(numberOfNeuronsLayer), outputs, new MSE(), true));
+       
         model.initialize(new Gaussian()); // initializing the weights
         System.out.println(model); // print summary of the model
         return model;
