@@ -12,6 +12,7 @@ import nl.tue.s2id90.dl.NN.layer.PoolMax2D;
 import nl.tue.s2id90.dl.NN.loss.CrossEntropy;
 import nl.tue.s2id90.dl.NN.optimizer.Optimizer;
 import nl.tue.s2id90.dl.NN.optimizer.SGD;
+import nl.tue.s2id90.dl.NN.optimizer.update.GradientDescent;
 import nl.tue.s2id90.dl.NN.tensor.TensorShape;
 import nl.tue.s2id90.dl.NN.validate.Classification;
 import nl.tue.s2id90.dl.experiment.Experiment;
@@ -43,12 +44,10 @@ public class ConvolutionExperiment extends Experiment {
     
     public void go() throws IOException {
         // read input and print information on the data
-        int seed=11081961, trainingDataSize=1200, testDataSize=200;
+        int seed=11081961, trainingDataSize=1200*4, testDataSize=200*4;
         InputReader reader = new PrimitivesDataGenerator(batchSize, seed, trainingDataSize, testDataSize);
         System.out.println("Reader info:\n" + reader.toString());
         reader.getValidationData(1).forEach(System.out::println);
-        
-//        System.out.println("\nin : " + reader.getInputShape() + " out: " + reader.getOutputShape() + "\n");
         
         // show a set of images to get more acquinted with the dataset
         ShowCase showCase = new ShowCase(i -> LABELS[i]);
@@ -61,6 +60,7 @@ public class ConvolutionExperiment extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
+                .updateFunction(() -> new L2Decay(GradientDescent::new, .0001f))
                 .build();
         trainModel(model, reader, sgd, epochs, 0);
     }
