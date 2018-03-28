@@ -71,7 +71,7 @@ abstract public class SgdExperimentTemplate extends Experiment {
                 .learningRate(learningRate)
                 .validator(new Classification())
                 .build();
-        trainModel(model, reader, sgd, epochs, 0);
+        trainModel(model, reader, sgd, epochs, 0, batchSize);
     }
     
     private Model createModel(int inputX, int inputY, int pixels, int shape, int classes) {

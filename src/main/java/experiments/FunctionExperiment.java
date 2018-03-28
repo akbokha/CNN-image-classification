@@ -50,7 +50,7 @@ public class FunctionExperiment extends Experiment {
                 .learningRate(learningRate)
                 .build();
         
-        trainModel(model, reader, sgd, epochs, 0);
+        trainModel(model, reader, sgd, epochs, 0, batchSize);
     }
     
     Model createModel(int inputs, int outputs) {
