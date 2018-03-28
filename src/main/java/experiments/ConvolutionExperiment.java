@@ -44,7 +44,7 @@ public class ConvolutionExperiment extends Experiment {
     
     public void go() throws IOException {
         // read input and print information on the data
-        int seed=11081961, trainingDataSize=1200*4, testDataSize=200*4;
+        int seed=11081961, trainingDataSize=1200, testDataSize=200;
         InputReader reader = new PrimitivesDataGenerator(batchSize, seed, trainingDataSize, testDataSize);
         System.out.println("Reader info:\n" + reader.toString());
         reader.getValidationData(1).forEach(System.out::println);
@@ -60,7 +60,7 @@ public class ConvolutionExperiment extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
-                .updateFunction(() -> new L2Decay(GradientDescent::new, .0001f))
+                .updateFunction(() -> new L2Decay(AlternativeGradientDescentMomentum::new, .0001f))
                 .build();
         trainModel(model, reader, sgd, epochs, 0);
     }
