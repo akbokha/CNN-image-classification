@@ -29,9 +29,9 @@ import nl.tue.s2id90.dl.javafx.ShowCase;
  * @author Adriaan Knapen
  */
 abstract public class SgdExperimentTemplate extends Experiment {
-    protected float learningRate = 0.2f;
-    protected int batchSize = 64;
-    protected int epochs = 5;
+    protected float learningRate = 0.005f;
+    protected int batchSize = 16;
+    protected int epochs = 15;
     
     static final int FLATTEN_LINEAR = 1; // can be used to flatten the shape of an input image into a linear shape
     static final int PIXELS_X = 28;
@@ -56,8 +56,12 @@ abstract public class SgdExperimentTemplate extends Experiment {
         InputReader reader = getReader();
         System.out.println("Reader info:\n" + reader.toString());
         reader.getValidationData(1).forEach(System.out::println);
-        
-//        System.out.println("\nin : " + reader.getInputShape() + " out: " + reader.getOutputShape() + "\n");
+        MeanSubtraction ms = new MeanSubtraction();
+        // pre-processing: mean-subtraction
+        ms.fit(reader.getTrainingData());
+        ms.transform(reader.getTrainingData());
+        ms.transform(reader.getValidationData());
+        System.out.println("\nin : " + reader.getInputShape() + " out: " + reader.getOutputShape() + "\n");
         
         // show a set of images to get more acquinted with the dataset
         ShowCase showCase = new ShowCase(i -> labels[i]);
@@ -70,6 +74,8 @@ abstract public class SgdExperimentTemplate extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
+//                .updateFunction(GradientDescentNesterovMomentum::new)
+                .updateFunction(GradientDescentMomentum::new)
                 .build();
         trainModel(model, reader, sgd, epochs, 0, batchSize);
     }
@@ -79,7 +85,6 @@ abstract public class SgdExperimentTemplate extends Experiment {
         Model model = new Model(new InputLayer("In", new TensorShape(inputX, inputY, shape), true));
         model.addLayer(new Flatten("Flatten", new TensorShape(inputX, inputY, shape)));
         model.addLayer(new OutputSoftmax("Out", new TensorShape(pixels), classes, new CrossEntropy()));
-        
         model.initialize(new Gaussian()); // initializing the weights
         System.out.println(model); // print summary of the model
         return model;    

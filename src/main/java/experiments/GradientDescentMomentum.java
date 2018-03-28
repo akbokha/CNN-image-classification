@@ -42,15 +42,15 @@ public class GradientDescentMomentum implements UpdateFunction {
     @Override
     public void update(INDArray value, boolean isBias, float learningRate, int batchSize, INDArray gradient) {
         if (update == null) update = gradient.dup('f').assign(0); // initiaized as zero
-        float factor = -(learningRate/batchSize); 
-//        Nd4j.getBlasWrapper().level1().axpy( value.length(), factor, gradient, value );
-//                                            // value <-- value + factor * gradient
-        INDArray updatePrev = update.dup(); // make a copy
-        int updateLength = update.length(); int valueLength = value.length();
-        Nd4j.getBlasWrapper().level1().scal(updateLength, this.mu, update); // update <--  mu * update 
-        Nd4j.getBlasWrapper().level1().axpy(updateLength, factor, gradient, update); // update <-- update + factor * gradient
-        Nd4j.getBlasWrapper().level1().axpy(valueLength, this.mu *= -1f, updatePrev, value); // value <-- value + (-mu * updatePrev)
-        Nd4j.getBlasWrapper().level1().axpy(valueLength, (1f + this.mu), update, value); // value <-- value + ((1 + mu) * update)
-        gradient.assign(0);
+        
+        /*
+        * Implements momentum as given in https://cs231n.github.io/neural-networks-3/#sgd
+        *   v = mu * v - learning_rate * dx # integrate velocity
+        *   x += v # integrate position
+        * with value as v, learningRate/batchSize as learning_rate, value as x, 
+        * and gradient as dx.
+        */
+        update = update.mul(mu).sub(gradient.mul(learningRate/batchSize)); // update <-- update * mu -  (learningRate/batchSize) * gradient
+        value.addi(update); // value <-- value + update
     }
 }
