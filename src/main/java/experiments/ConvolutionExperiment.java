@@ -60,7 +60,7 @@ public class ConvolutionExperiment extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
-                .updateFunction(() -> new L2Decay(AlternativeGradientDescentMomentum::new, .0001f))
+                .updateFunction(() -> new Adadelta())
                 .build();
         trainModel(model, reader, sgd, epochs, 0);
     }
