@@ -19,8 +19,8 @@ import nl.tue.s2id90.dl.input.MNISTReader;
  * @author Adriaan Knapen
  */
 public class ZalandoExperiment extends SgdExperimentTemplate {
-    protected float learningRate = 0.2f;
-    protected int batchSize = 64;
+    protected float learningRate = 0.01f;
+    protected int batchSize = 32;
     protected int epochs = 5;
     
     static int FLATTEN_LINEAR = 1; // can be used to flatten the shape of an input image into a linear shape

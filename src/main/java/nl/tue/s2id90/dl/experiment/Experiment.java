@@ -77,8 +77,60 @@ public class Experiment {
             }
         }
     }
+    
+    // BEGIN OWN ADDITIONS
+    // prints results to txt files in /results/
+    // has an extra parameter {@code: batchSize} which differentiates the method from the original trainModel method
 
     /**
+     * trains the neural network model.
+     * @param model       the neural network model
+     * @param reader      the data source
+     * @param sgd         the chosen optimizer, typically SGD
+     * @param epochs      the number of epochs for training
+     * @param activations every activations batches the activation of the network is made available to the gui;
+     *                     if less or equal to zero, this is ignored.
+     * @param batchSize   the chosen batch-size
+     */
+    public void trainModel(Model model, InputReader reader, Optimizer sgd, int epochs, int activations, int batchSize) {
+        // loop over all training batches for #epochs times
+        // START OWN ADDITIONS
+        String dateTime= DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(ZonedDateTime.now());
+        String fileName = String.format("results/results-%s.txt", dateTime);
+        try {
+            this.writer = new PrintWriter(fileName, "UTF-8");
+        } catch (UnsupportedEncodingException | FileNotFoundException ex) {
+            Logger.getLogger(Experiment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.writer.println(model.toString() + "\n" + sgd.toString() + String.format("\nbatch-size: %d\n", batchSize));
+        // END OWN ADDITIONS
+        for( int epoch = 1 ; epoch <= epochs ; epoch++ ){
+            
+            // iterator randomizes data and loops over all training data
+            Iterator<TensorPair> batches = reader.getTrainingBatchIterator();
+            
+            // loop over all training batches
+            System.out.format( "\nTraining epoch %d ..,\n", epoch);
+            float loss = 0f;
+            while( batches.hasNext() ){
+                TensorPair batch = batches.next();
+                
+                // train model with one batch
+                model.setInTrainingMode(true);
+                BatchResult result = sgd.trainOnBatch(batch);
+                loss = result.loss;
+                onBatchFinished(model, reader, sgd, epochs, activations, batch, result);
+            }
+            
+            onEpochFinished(model, reader, sgd, epochs, activations, epoch, loss);
+        }
+        this.writer.close(); // OWN ADDITION
+        System.out.format( "Training of model finished after %d epochs.\n.", epochs );
+    }
+    
+    // END OWN ADDITION
+    
+        /**
      * trains the neural network model.
      * @param model       the neural network model
      * @param reader      the data source
@@ -89,16 +141,6 @@ public class Experiment {
      */
     public void trainModel(Model model, InputReader reader, Optimizer sgd, int epochs, int activations) {
         // loop over all training batches for #epochs times
-        // START OWN ADDITIONS
-        String dateTime= DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(ZonedDateTime.now());
-        String fileName = String.format("results/results-%s.txt", dateTime);
-        try {
-            this.writer = new PrintWriter(fileName, "UTF-8");
-        } catch (UnsupportedEncodingException | FileNotFoundException ex) {
-            Logger.getLogger(Experiment.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        this.writer.println(model.toString() + "\n" + sgd.toString() + "\n");
-        // END OWN ADDITIONS
         for( int epoch = 1 ; epoch <= epochs ; epoch++ ){
             
             // iterator randomizes data and loops over all training data
@@ -118,7 +160,7 @@ public class Experiment {
             
             onEpochFinished(model, reader, sgd, epochs, activations, epoch);
         }
-        this.writer.close(); // OWN ADDITION
+        
         System.out.format( "Training of model finished after %d epochs.\n.", epochs );
     }
     
@@ -146,6 +188,8 @@ public class Experiment {
         }
     }
     
+    // START OWN ADDITIONS
+    
     /** called after an epoch has been trained in method trainModel.
      * The arguments are the arguments as presented to trainModel, supplemented with
      * the index of the last finished epoch..
@@ -158,15 +202,41 @@ public class Experiment {
      *                     if less or equal to zero, this is ignored.
      * @param epoch       index of the last finished epoch.
      */
-    public void onEpochFinished(Model model, InputReader reader, Optimizer sgd, int epochs, int activations, int epoch){
+    public void onEpochFinished(Model model, InputReader reader, Optimizer sgd, int epochs, int activations, int epoch, float loss){
         // validate model after each epoch
         System.out.println("\nValidating ...");
         model.setInTrainingMode(false);
         lastValidationResult = sgd.validate(reader.getValidationData());
         System.out.format("Validation after epoch %3d: %s \n", epoch, lastValidationResult);
         // START OWN ADDITIONS
-        this.writer.format("epoch:%3d; %s\n", epoch, lastValidationResult.toString().substring(1, lastValidationResult.toString().length() - 1));
+        this.writer.format("epoch:%3d; %s loss: %s\n", epoch, lastValidationResult.toString().substring(1, lastValidationResult.toString().length() - 1), Float.toString(loss));
         // END OWN ADDITIONS
+        // add to gui
+        addValidationResult(lastValidationResult);
+    }
+    
+    // END OWN ADDITIONS
+    // Has extra parameter: {@code: loss}
+    
+       /** called after an epoch has been trained in method trainModel.
+     * The arguments are the arguments as presented to trainModel, supplemented with
+     * the index of the last finished epoch..
+     * 
+     * @param model       the neural network model
+     * @param reader      the data source
+     * @param sgd         the chosen optimizer, typically SGD
+     * @param epochs      the number of epochs for training
+     * @param activations every activations batches the activation of the network is made available to the gui;
+     *                     if less or equal to zero, this is ignored.
+     * @param epoch       index of the last finished epoch.
+     */
+    public void onEpochFinished(Model model, InputReader reader, Optimizer sgd, int epochs, int activations, int epoch) {
+        // validate model after each epoch
+        System.out.println("\nValidating ...");
+        model.setInTrainingMode(false);
+        lastValidationResult = sgd.validate(reader.getValidationData());
+        System.out.format("Validation after epoch %3d: %s \n", epoch, lastValidationResult);
+
         // add to gui
         addValidationResult(lastValidationResult);
     }
