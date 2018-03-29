@@ -12,21 +12,21 @@ package experiments;
 import java.io.IOException;
 import nl.tue.s2id90.dl.input.InputReader;
 import nl.tue.s2id90.dl.input.MNISTReader;
-
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Abdel K. Bokharouss
  * @author Adriaan Knapen
  */
+
 public class ZalandoExperiment extends SgdExperimentTemplate {
-    protected float learningRate = 0.01f;
-    protected int batchSize = 32;
-    protected int epochs = 5;
     
-    static int FLATTEN_LINEAR = 1; // can be used to flatten the shape of an input image into a linear shape
-    static int PIXELS_X = 28;
-    static int PIXELS_Y = 28;
-    static int PIXELS = PIXELS_X * PIXELS_Y;
+    public ZalandoExperiment(float learningRate, int batchSize, int epochs) {
+        this.learningRate = learningRate;
+        this.batchSize = batchSize;
+        this.epochs = epochs;
+    }
     
     @Override
     protected String[] getLabels() {
@@ -42,6 +42,23 @@ public class ZalandoExperiment extends SgdExperimentTemplate {
     }
       
     public static void main (String [] args) throws IOException {
-        new ZalandoExperiment().go();
+        new ZalandoExperiment(0.005f, 16, 15).go();
+//        List<Float> learningRates = new ArrayList<Float>() {{
+//            add(0.005f); add(0.01f); add(0.02f);
+//        }};
+//        List<Integer> batchSizes = new ArrayList<Integer>() {{
+//            add(16); add(32); add(64);
+//        }};
+//        List<Integer> epochVals = new ArrayList<Integer>() {{
+//            add(5); add(10); add(15);
+//        }};
+//        for (float learningRate : learningRates) {
+//            for (int batchSize : batchSizes) {
+//                for (int epochs : epochVals) {
+//                    new ZalandoExperiment(learningRate, batchSize, epochs).go();
+//                }
+//            }
+//        }
+
     }
 }
