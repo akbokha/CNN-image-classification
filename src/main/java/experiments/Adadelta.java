@@ -2,6 +2,8 @@ package experiments;
 
 import nl.tue.s2id90.dl.NN.optimizer.update.UpdateFunction;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import static org.nd4j.linalg.ops.transforms.Transforms.neg;
+import static org.nd4j.linalg.ops.transforms.Transforms.pow;
 import static org.nd4j.linalg.ops.transforms.Transforms.sqrt;
 
 /*
@@ -34,17 +36,12 @@ public class Adadelta implements UpdateFunction {
         if (Eg2 == null) Eg2 = gradient.dup('f').assign(0); // initiaized as zero
         if (Ex2 == null) Ex2 = gradient.dup('f').assign(0); // initiaized as zero
         
-        System.out.println(Eg2);
-        System.out.println(Ex2);
-        
         /*
         * With mu as ρ, gradient as g, e as e, array as x_t
         */
-        INDArray g2 = gradient.mul(gradient);
-        System.out.println(gradient + " " + g2);
-        Eg2 = Eg2.mul(mu).add(g2.mul(1 - mu)); // E[g^2]_t <-- ρE[g^2]_{t−1} + (1−ρ)g^2
-        INDArray deltaX = sqrt(Eg2.add(e)).mul(gradient).div(sqrt(Ex2.add(e))).mul(-1); // ∆x_t = −(g_t * RMS[∆x]_{t-1}) / RMS[g]t = -(g_t * sqrt(E[x^2]_{t-1} + e) / sqrt(E[g^2]_t + e)
-        Ex2 = Ex2.mul(mu).add(deltaX.mul(deltaX).mul(1 - mu)); // E[∆x^2]_t = ρE[∆x^2]_{t−1} + (1−ρ)∆x^2_t
+        Eg2 = Eg2.muli(mu).addi(pow(gradient, 2)); // E[g^2]_t <-- ρE[g^2]_{t−1} + (1−ρ)g^2
+        INDArray deltaX = neg(sqrt(Ex2.add(e)).muli(gradient).divi(sqrt(Eg2.add(e)))); // ∆x_t = −(g_t * RMS[∆x]_{t-1}) / RMS[g]t = -(g_t * sqrt(E[x^2]_{t-1} + e) / sqrt(E[g^2]_t + e)
+        Ex2 = Ex2.muli(mu).addi(pow(deltaX, 2).muli(1f - mu)); // E[∆x^2]_t = ρE[∆x^2]_{t−1} + (1−ρ)∆x^2_t
         
         value.addi(deltaX); // x_{t+1} = x_t + ∆x_t
     }

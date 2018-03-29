@@ -10,6 +10,7 @@
 package experiments;
 
 import java.io.IOException;
+import java.util.Random;
 import nl.tue.s2id90.dl.input.InputReader;
 import nl.tue.s2id90.dl.input.PrimitivesDataGenerator;
 
@@ -19,14 +20,20 @@ import nl.tue.s2id90.dl.input.PrimitivesDataGenerator;
  * @author Adriaan Knapen
  */
 public class SCTExperiment extends SgdExperimentTemplate {
-    protected float learningRate = 0.2f;
-    protected int batchSize = 64;
-    protected int epochs = 5;
     
     static int FLATTEN_LINEAR = 1; // can be used to flatten the shape of an input image into a linear shape
     static int PIXELS_X = 28;
     static int PIXELS_Y = 28;
     static int PIXELS = PIXELS_X * PIXELS_Y;
+    static private InputReader reader;
+
+    private SCTExperiment(float learningRate, int batchSize, int epochs) {
+        super();
+        
+        this.learningRate = learningRate;
+        this.batchSize = batchSize;
+        this.epochs = epochs;
+    }
     
     @Override
     protected String[] getLabels() {
@@ -35,11 +42,23 @@ public class SCTExperiment extends SgdExperimentTemplate {
     
     @Override
     protected InputReader getReader() throws IOException {
-        int seed=11081961, trainingDataSize=1200, testDataSize=200;
-        return new PrimitivesDataGenerator(batchSize, seed, trainingDataSize, testDataSize);
+        if (reader==null) {
+            int seed=11081961, trainingDataSize=1200*4, testDataSize=200*4;
+            reader = new PrimitivesDataGenerator(batchSize, seed, trainingDataSize, testDataSize);
+        }
+        
+        return reader;
     }
       
     public static void main (String [] args) throws IOException {
-        new SCTExperiment().go();
+        Random r = new Random();
+        float l;
+        int b, e;
+        for (int i = 0; i < 50; i++) {
+            l = (float) Math.pow(r.nextFloat()/3f, 2);
+            b = r.nextInt(12) * 2 + 12;
+            e = (int) Math.pow(1 + r.nextFloat() * 8f, 2);
+            new SCTExperiment(l, b, e).go();
+        }
     }
 }

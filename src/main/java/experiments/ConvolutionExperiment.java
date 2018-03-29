@@ -67,7 +67,7 @@ public class ConvolutionExperiment extends Experiment {
     
     private Model createModel(int inputX, int inputY, int shape, int classes) {
         // network topology
-        // INPUT => Conv => RELU => MaxPool => FC (Softmax)
+        // INPUT => [[Conv => RELU]*N => MaxPool]*K => FC (Softmax)
         
         // INPUT
         Model model = new Model(new InputLayer("In", new TensorShape(inputX, inputY, shape), true));

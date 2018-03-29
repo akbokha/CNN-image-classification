@@ -29,9 +29,9 @@ import nl.tue.s2id90.dl.javafx.ShowCase;
  * @author Adriaan Knapen
  */
 abstract public class SgdExperimentTemplate extends Experiment {
-    protected float learningRate = 0.2f;
-    protected int batchSize = 64;
-    protected int epochs = 5;
+    protected float learningRate = 0.05f;
+    protected int batchSize = 16;
+    protected int epochs = 15;
     
     static final int FLATTEN_LINEAR = 1; // can be used to flatten the shape of an input image into a linear shape
     static final int PIXELS_X = 28;
@@ -61,7 +61,7 @@ abstract public class SgdExperimentTemplate extends Experiment {
         
         // show a set of images to get more acquinted with the dataset
         ShowCase showCase = new ShowCase(i -> labels[i]);
-        FXGUI.getSingleton().addTab("show case", showCase.getNode());
+        FXGUI.getSingleton().addTab("show case " + learningRate + " " + batchSize + " " + epochs, showCase.getNode());
         showCase.setItems(reader.getValidationData(100));
         
         Model model = createModel(PIXELS_X, PIXELS_Y, PIXELS, FLATTEN_LINEAR, CLASSES);
@@ -70,6 +70,8 @@ abstract public class SgdExperimentTemplate extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
+//                .updateFunction(() -> new Adadelta())
+                .updateFunction(() -> new AlternativeGradientDescentMomentum())
                 .build();
         trainModel(model, reader, sgd, epochs, 0, batchSize);
     }
