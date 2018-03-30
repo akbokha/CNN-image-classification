@@ -40,7 +40,7 @@ public class ZalandoExperiment extends SgdExperimentTemplate {
     }
       
     public static void main (String [] args) throws IOException {
-        new ZalandoExperiment(0.005f, 64, 5).go();
+        new ZalandoExperiment(0.005f, 16, 15).go();
 //        List<Float> learningRates = new ArrayList<Float>() {{
 //            add(0.005f); add(0.01f); add(0.02f);
 //        }};

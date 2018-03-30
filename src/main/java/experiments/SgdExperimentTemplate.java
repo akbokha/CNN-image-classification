@@ -57,8 +57,9 @@ abstract public class SgdExperimentTemplate extends Experiment {
         InputReader reader = getReader();
         System.out.println("Reader info:\n" + reader.toString());
         reader.getValidationData(1).forEach(System.out::println);
-        MeanSubtraction ms = new MeanSubtraction();
+        
         // pre-processing: mean-subtraction
+        MeanSubtraction ms = new MeanSubtraction();
         ms.fit(reader.getTrainingData());
         ms.transform(reader.getTrainingData());
         ms.transform(reader.getValidationData());
@@ -75,6 +76,8 @@ abstract public class SgdExperimentTemplate extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
+//                .updateFunction(GradientDescent::new)
+//                .updateFunction(GradientDescentMomentum::new)
 //                .updateFunction(GradientDescentNesterovMomentum::new)
                 .updateFunction(() -> new L2Decay(GradientDescentMomentum::new, 0.000001f))
                 .build();
