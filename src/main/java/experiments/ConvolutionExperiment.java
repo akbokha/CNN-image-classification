@@ -22,9 +22,9 @@ import nl.tue.s2id90.dl.javafx.FXGUI;
 import nl.tue.s2id90.dl.javafx.ShowCase;
 
 public class ConvolutionExperiment extends Experiment {
-    protected float learningRate = 0.2f;
-    protected int batchSize = 64;
-    protected int epochs = 5;
+    protected float learningRate = 0.01f;
+    protected int batchSize = 18;
+    protected int epochs = 50;
     protected int kernelSize = 3;
     protected int noFilters = 1;
     protected int N = 1;
@@ -34,6 +34,8 @@ public class ConvolutionExperiment extends Experiment {
     static int FLATTEN_LINEAR = 1; // can be used to flatten the shape of an input image into a linear shape
     static int PIXELS_X = 28;
     static int PIXELS_Y = 28;
+    static InputReader reader = null;
+    boolean l2Decay = true;
     
     static final String[] LABELS = {"Square", "Circle", "Triangle"};
     static final int CLASSES = LABELS.length;
@@ -42,10 +44,17 @@ public class ConvolutionExperiment extends Experiment {
         super(true);
     }
     
+    public ConvolutionExperiment(boolean l2Decay) {
+        super(true);
+        this.l2Decay = l2Decay;
+    }
+    
     public void go() throws IOException {
         // read input and print information on the data
-        int seed=11081961, trainingDataSize=1200, testDataSize=200;
-        InputReader reader = new PrimitivesDataGenerator(batchSize, seed, trainingDataSize, testDataSize);
+        if (reader==null) {
+            int seed=11081961, trainingDataSize=10000, testDataSize=800;
+            reader = new PrimitivesDataGenerator(batchSize, seed, trainingDataSize, testDataSize);
+        }
         System.out.println("Reader info:\n" + reader.toString());
         reader.getValidationData(1).forEach(System.out::println);
         
@@ -60,7 +69,7 @@ public class ConvolutionExperiment extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
-                .updateFunction(() -> new Adadelta())
+                .updateFunction(l2Decay?() -> new L2Decay(Adadelta::new, 0.0001f):Adadelta::new)
                 .build();
         trainModel(model, reader, sgd, epochs, 0);
     }
@@ -97,35 +106,8 @@ public class ConvolutionExperiment extends Experiment {
         return model;
     }
     
-    private Model createModelSimple(int inputX, int inputY, int shape, int classes) {
-        // network topology
-        // INPUT => Conv => RELU => MaxPool => FC (Softmax)
-        
-        // INPUT
-        Model model = new Model(new InputLayer("In", new TensorShape(inputX, inputY, shape), true));
-        
-        // Conv && RELU
-        model.addLayer(new Convolution2D(
-                "Conv", 
-                new TensorShape(inputX, inputY, shape), 
-                kernelSize, 
-                noFilters, 
-                new RELU()
-        ));
-        
-        // MaxPool
-        model.addLayer(new PoolMax2D("max-pool", new TensorShape(inputX, inputY, shape), 1));
-        
-        // FC
-        model.addLayer(new Flatten("Flatten", new TensorShape(inputX, inputY, shape)));
-        model.addLayer(new OutputSoftmax("Out", new TensorShape(inputX * inputY), classes, new CrossEntropy()));
-        
-        model.initialize(new Gaussian()); // initializing the weights
-        System.out.println(model); // print summary of the model
-        return model;    
-    }
-    
     public static void main (String [] args) throws IOException {
-        new ConvolutionExperiment().go();
+        new ConvolutionExperiment(true).go();
+        new ConvolutionExperiment(false).go();
     }
 }

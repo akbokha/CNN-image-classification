@@ -17,6 +17,7 @@ import nl.tue.s2id90.dl.NN.layer.OutputSoftmax;
 import nl.tue.s2id90.dl.NN.loss.CrossEntropy;
 import nl.tue.s2id90.dl.NN.optimizer.Optimizer;
 import nl.tue.s2id90.dl.NN.optimizer.SGD;
+import nl.tue.s2id90.dl.NN.optimizer.update.GradientDescent;
 import nl.tue.s2id90.dl.NN.tensor.TensorShape;
 import nl.tue.s2id90.dl.NN.validate.Classification;
 import nl.tue.s2id90.dl.experiment.Experiment;
@@ -75,7 +76,7 @@ abstract public class SgdExperimentTemplate extends Experiment {
                 .learningRate(learningRate)
                 .validator(new Classification())
 //                .updateFunction(GradientDescentNesterovMomentum::new)
-                .updateFunction(GradientDescentMomentum::new)
+                .updateFunction(() -> new L2Decay(GradientDescentMomentum::new, 0.000001f))
                 .build();
         trainModel(model, reader, sgd, epochs, 0, batchSize);
     }

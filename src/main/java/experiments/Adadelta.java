@@ -12,7 +12,7 @@ import static org.nd4j.linalg.ops.transforms.Transforms.sqrt;
 public class Adadelta implements UpdateFunction {
     INDArray Eg2;
     INDArray Ex2;
-    float e = 0.0000001f;
+    float e = 0.000001f;
     
     float mu;
     static float [] mu_values = new float []{0.5f, 0.9f, 0.95f, 0.99f};
@@ -44,6 +44,8 @@ public class Adadelta implements UpdateFunction {
         Ex2 = Ex2.muli(mu).addi(pow(deltaX, 2).muli(1f - mu)); // E[∆x^2]_t = ρE[∆x^2]_{t−1} + (1−ρ)∆x^2_t
         
         value.addi(deltaX); // x_{t+1} = x_t + ∆x_t
+        
+        gradient.assign(0);
     }
     
 }

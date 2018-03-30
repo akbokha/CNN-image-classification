@@ -3,6 +3,7 @@ package experiments;
 import java.util.function.Supplier;
 import nl.tue.s2id90.dl.NN.optimizer.update.UpdateFunction;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import static org.nd4j.linalg.ops.transforms.Transforms.pow;
 
 public class L2Decay implements UpdateFunction {
     float decay;
@@ -29,7 +30,7 @@ public class L2Decay implements UpdateFunction {
         f.update(array, isBias, learningRate, batchSize, gradient);
         // Only apply L2Decay when we are not working with a bias
         if (!isBias) {
-            array.mul(array).mul(.5f*decay);
+            array.addi(pow(array, 2).mul(.5f * decay));
         }
     }
 }

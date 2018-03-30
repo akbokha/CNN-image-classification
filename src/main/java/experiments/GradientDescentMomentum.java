@@ -50,7 +50,7 @@ public class GradientDescentMomentum implements UpdateFunction {
         * with value as v, learningRate/batchSize as learning_rate, value as x, 
         * and gradient as dx.
         */
-        update = update.mul(mu).sub(gradient.mul(learningRate/batchSize)); // update <-- update * mu -  (learningRate/batchSize) * gradient
+        update = update.mul(mu).sub(gradient.mul(learningRate/(float)batchSize)); // update <-- update * mu -  (learningRate/batchSize) * gradient
         value.addi(update); // value <-- value + update
     }
 }
