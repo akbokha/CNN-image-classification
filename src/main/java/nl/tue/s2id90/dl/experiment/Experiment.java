@@ -128,6 +128,30 @@ public class Experiment {
         System.out.format( "Training of model finished after %d epochs.\n.", epochs );
     }
     
+     /**
+     * trains a neural network model, when finished saves the last model in the folder
+     * "experiments/CLASSNAME-Model.json".
+     * @param model       the neural network model
+     * @param reader      the data source
+     * @param sgd         the chosen optimizer, typically SGD
+     * @param epochs      the number of epochs for training
+     * @param activations every activations batches the activation of the network is made available to the gui;
+     *                     if less or equal to zero, this is ignored.
+     */
+    public void trainAndSaveModel(Model model, InputReader reader, Optimizer sgd, int epochs, int activations, int batchSize) {
+        try {
+            trainModel(model, reader, sgd,epochs, activations, batchSize);
+        } finally {
+            try {
+                File file = Paths.get("experiments", getClass().getSimpleName()+"-Model.json").toFile();                
+                LOGGER.log(Level.INFO, "Saving model to {0} ...", file.getCanonicalPath());
+                model.saveModel(file);
+            } catch (IOException ex) {
+                LOGGER.severe(ex.getMessage());
+            }
+        }
+    }
+    
     // END OWN ADDITION
     
         /**

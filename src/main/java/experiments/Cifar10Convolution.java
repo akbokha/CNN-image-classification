@@ -38,8 +38,8 @@ import nl.tue.s2id90.dl.javafx.ShowCase;
  */
 public class Cifar10Convolution extends Experiment {
     int batchSize = 128; // size of the batches in which the data is processed
-    float learningRate = 0.001f; // parameter for the gradient descent optimization method
-    int epochs = 5; // number of epochs that a training takes
+    float learningRate = .0009f; // parameter for the gradient descent optimization method
+    int epochs = 8; // number of epochs that a training takes
     
     static final int RGB_DEPTH = 3; 
     static final int PIXELS_X = 32;
@@ -81,10 +81,10 @@ public class Cifar10Convolution extends Experiment {
         showCase.setItems(reader.getValidationData(100));
         
         // pre-processing: mean-subtraction
-//        Cifar10MeanSubtraction cms = new Cifar10MeanSubtraction();
-//        cms.fit(reader.getTrainingData());
-//        cms.transform(reader.getTrainingData());
-//        cms.transform(reader.getValidationData());
+        Cifar10MeanSubtraction cms = new Cifar10MeanSubtraction();
+        cms.fit(reader.getTrainingData());
+        cms.transform(reader.getTrainingData());
+        cms.transform(reader.getValidationData());
         
         System.out.println("\nin : " + reader.getInputShape() + " out: " + reader.getOutputShape() + "\n");
         
@@ -93,12 +93,13 @@ public class Cifar10Convolution extends Experiment {
                 .model(model)
                 .learningRate(learningRate)
                 .validator(new Classification())
-                .updateFunction(GradientDescent::new)
+//                .updateFunction(GradientDescent::new)
 //                .updateFunction(GradientDescentMomentum::new)
 //                .updateFunction(GradientDescentNesterovMomentum::new)
-//                .updateFunction(() -> new L2Decay(GradientDescentMomentum::new, 0.000001f))
+                .updateFunction(() -> new L2Decay(GradientDescentMomentum::new, 0.0000001f))
                 .build();
-        trainModel(model, reader, sgd, epochs, 0, batchSize);
+//        trainModel(model, reader, sgd, epochs, 0, batchSize);
+        trainAndSaveModel(model, reader, sgd, epochs, 0, batchSize);
     }
     
     private Model createModel(int inputX, int inputY, int pixels, int shape, int depth, int classes) {
@@ -110,7 +111,7 @@ public class Cifar10Convolution extends Experiment {
 //        model.addLayer(new OutputSoftmax("Out", new TensorShape(shape), classes, new CrossEntropy()));
 
         // 2nd experiment (benchmarking purposes): simple Convnet INPUT -> [CONV -> RELU -> POOL]*2 -> FC -> RELU -> FC  
-        // batchSize = 128; learningRate = 0.001f; epochs = 5; convolKernelSize = 3; convolStride = 1; convolKernels = 32; convolZeroPadding = 0; poolStride = 2;
+        // params: batchSize = 128; learningRate = 0.001f; epochs = 5; convolKernelSize = 3; convolStride = 1; convolKernels = 32; convolZeroPadding = 0; poolStride = 2;
 //        model.addLayer(new Convolution2D(String.format("conv%s", Integer.toString(1)), new TensorShape(inputX, inputY, depth), convolKernelSize, convolKernels, new RELU()));
 //        model.addLayer(new PoolMax2D(String.format("pool%s", Integer.toString(1)), new TensorShape(inputX, inputY, convolKernels), poolStride));
 //        model.addLayer(new Convolution2D(String.format("conv%s", Integer.toString(2)), new TensorShape(inputX / poolStride, inputY / poolStride, convolKernels), convolKernelSize, convolKernels, new RELU()));
@@ -126,15 +127,48 @@ public class Cifar10Convolution extends Experiment {
 //        );
 //        model.addLayer(new OutputSoftmax("Out", new TensorShape(inputX / (poolStride * poolStride) * inputY / (poolStride * poolStride) * convolKernels / 16), labels.length, new CrossEntropy()));
         
-        // eventual design of the convolutional network
-        
+        // eventual design of the convolutional network     
+        model.addLayer(
+                new Convolution2D(String.format("conv%s", Integer.toString(1)), new TensorShape(inputX, inputY, depth), convolKernelSize, convolKernels, new RELU()));
+        model.addLayer(
+                new Convolution2D(String.format("conv%s", Integer.toString(2)), new TensorShape(inputX, inputY, convolKernels), convolKernelSize, convolKernels, new RELU()));
+        model.addLayer(
+                new PoolMax2D(String.format("pool%s", Integer.toString(1)), new TensorShape(inputX, inputY, convolKernels),
+                        poolStride));
+        model.addLayer(
+                new Convolution2D(String.format("conv%s", Integer.toString(3)), new TensorShape(inputX / poolStride, inputY / poolStride, convolKernels),
+                        convolKernelSize, convolKernels * 2, new RELU()));
+        model.addLayer(
+                new Convolution2D(String.format("conv%s", Integer.toString(4)), new TensorShape(inputX / poolStride, inputY / poolStride, convolKernels * 2),
+                        convolKernelSize, convolKernels * 2, new RELU()));
+        model.addLayer(
+                new PoolMax2D(String.format("pool%s", Integer.toString(2)), new TensorShape(inputX / poolStride, inputY / poolStride, convolKernels * 2),
+                        poolStride));
+        model.addLayer(
+                new Convolution2D(String.format("conv%s", Integer.toString(5)), new TensorShape(inputX / (poolStride * poolStride), inputY / (poolStride * poolStride), convolKernels * 2),
+                convolKernelSize, convolKernels * 3, new RELU()));
+        model.addLayer(
+                new Convolution2D(String.format("conv%s", Integer.toString(6)), new TensorShape(inputX / (poolStride * poolStride), inputY / (poolStride * poolStride), convolKernels * 3),
+                convolKernelSize, convolKernels * 3, new RELU()));
+        model.addLayer(
+                new PoolMax2D(String.format("pool%s", Integer.toString(3)), new TensorShape(inputX / (poolStride * poolStride), inputY / (poolStride * poolStride), convolKernels * 3),
+                        poolStride));        
+        model.addLayer(
+                new Flatten("Flatten", new TensorShape(inputX / (poolStride * poolStride * poolStride), inputY / (poolStride * poolStride * poolStride), convolKernels * 3)));        
+        model.addLayer(
+                new FullyConnected(String.format("fc%s", Integer.toString(1)), new TensorShape(inputX / (poolStride * poolStride * poolStride) * inputY / (poolStride * poolStride * poolStride) * convolKernels * 3), 
+                convolKernels * 3, new RELU()));
+        model.addLayer(
+                new OutputSoftmax("Out", new TensorShape(convolKernels * 3), labels.length, new CrossEntropy()));
+
         model.initialize(new Gaussian()); // initializing the weights
         System.out.println(model); // print summary of the model
         return model;
     }
     
     public static void main (String [] args) throws IOException {
-        new Cifar10Convolution().go();
+//        new Cifar10Convolution().go();
+        new Cifar10Convolution(true).go();
     }
     
 }
