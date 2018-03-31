@@ -82,6 +82,7 @@ abstract public class SgdExperimentTemplate extends Experiment {
                 .updateFunction(() -> new L2Decay(GradientDescentMomentum::new, 0.000001f))
                 .build();
         trainModel(model, reader, sgd, epochs, 0, batchSize);
+//        trainAndSaveModel(model, reader, sgd, epochs, 0); // to generate json file with results
     }
     
     private Model createModel(int inputX, int inputY, int pixels, int shape, int classes) {
